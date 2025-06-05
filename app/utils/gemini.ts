@@ -1,24 +1,24 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from '@google/genai';
 
-const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
+const genAI = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || '' });
 
 export async function processAudio(file: File): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
     // Convert audio file to base64
     const base64Audio = await fileToBase64(file);
 
     const prompt = `
       Please analyze this audio file and generate timestamped lyrics in LRC format.
-      The output lyrics should always be in the latin script.
-      The output should follow standard LRC format with [mm:ss.xx] timestamps.
+      Your generated lyrics should ALWAYS be in english script.
+      The lyrics should follow standard LRC format with [mm:ss.xx] timestamps.
       Only return the LRC content, no additional text.
     `;
 
-    const result = await model.generateContent([prompt, { inlineData: { data: base64Audio, mimeType: file.type } }]);
-    const response = result.response;
-    const text = response.text();
+    const result = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash-preview-05-20',
+        contents: [ prompt, { inlineData: { data: base64Audio, mimeType: file.type } } ]
+    });
+    const text = result.text;
 
     return text;
   } catch (error) {
